@@ -29,6 +29,12 @@ RUN curl -fsSL https://deb.nodesource.com/setup_22.x | bash - \
 COPY . .
 
 RUN git config --global --add safe.directory /var/www/html \
+    && mkdir -p bootstrap/cache \
+    && mkdir -p storage/logs \
+    && mkdir -p storage/framework/cache/data \
+    && mkdir -p storage/framework/sessions \
+    && mkdir -p storage/framework/views \
+    && chmod -R 775 storage bootstrap/cache \
     && composer install --no-dev --no-interaction --prefer-dist --optimize-autoloader \
     && npm ci \
     && npm run prod \
