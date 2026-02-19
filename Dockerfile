@@ -26,6 +26,14 @@ RUN curl -fsSL https://deb.nodesource.com/setup_22.x | bash - \
     && apt-get update && apt-get install -y nodejs \
     && apt-get clean && rm -rf /var/lib/apt/lists/*
 
-EXPOSE 8000
+COPY . .
 
-CMD ["bash", "-lc", "git config --global --add safe.directory /var/www/html || true && if [ ! -f .env ]; then cp .env.example .env; fi && composer install --no-interaction --prefer-dist && npm install && if ! grep -q '^APP_KEY=base64:' .env; then php artisan key:generate --force; fi && php artisan storage:link || true && php artisan serve --host=0.0.0.0 --port=8000"]
+RUN git config --global --add safe.directory /var/www/html \
+    && composer install --no-dev --no-interaction --prefer-dist --optimize-autoloader \
+    && npm ci \
+    && npm run prod \
+    && rm -rf node_modules
+
+EXPOSE 8080
+
+CMD ["bash", "-lc", "php artisan storage:link || true && php artisan serve --host=0.0.0.0 --port=${PORT:-8080}"]
