@@ -41,8 +41,9 @@ RUN git config --global --add safe.directory /var/www/html \
     && composer install --no-dev --no-interaction --prefer-dist --optimize-autoloader \
     && npm ci \
     && npm run prod \
-    && rm -rf node_modules
+    && rm -rf node_modules \
+    && rm -f bootstrap/cache/*.php
 
 EXPOSE 8080
 
-CMD ["bash", "-lc", "touch .env && chmod 664 .env config/system-addons.php app/Providers/RouteServiceProvider.php || true && php artisan storage:link || true && php artisan serve --host=0.0.0.0 --port=${PORT:-8080}"]
+CMD ["bash", "-lc", "mkdir -p storage/logs storage/framework/cache/data storage/framework/sessions storage/framework/views bootstrap/cache && chmod -R 775 storage bootstrap/cache && touch .env && chmod 664 .env config/system-addons.php app/Providers/RouteServiceProvider.php || true && php artisan optimize:clear || true && php artisan storage:link || true && php artisan serve --host=0.0.0.0 --port=${PORT:-8080}"]
