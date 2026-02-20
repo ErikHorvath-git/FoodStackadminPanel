@@ -20,24 +20,6 @@ $(document).ready(function () {
 
 
 
-//View Details
-$(".view-btn").on("click", function () {
-    var container = $(this).closest(".view-details-container");
-    var details = container.find(".view-details");
-    var icon = $(this).find("i");
-
-    $(this).toggleClass("active");
-    details.slideToggle(300);
-    icon.toggleClass("rotate-180deg");
-});
-$(".section-toggle").on("change", function () {
-    if ($(this).is(':checked')) {
-        $(this).closest(".view-details-container").find(".view-details").slideDown(300);
-    } else {
-        $(this).closest(".view-details-container").find(".view-details").slideUp(300);
-    }
-});
-
 //Select2 Data Add
 $(document).ready(function() {
     $('#tax__rate').select2({
