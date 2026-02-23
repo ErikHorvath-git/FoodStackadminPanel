@@ -38,6 +38,21 @@ use App\Http\Controllers\WalletPaymentController;
 Route::post('/subscribeToTopic', [FirebaseController::class, 'subscribeToTopic']);
  Route::get('/', [HomeController::class, 'index'])->name('home');
 
+// Fallback for environments where public/storage symlink is missing or broken.
+Route::get('storage/{path}', function (string $path) {
+    $decodedPath = urldecode($path);
+    if (str_contains($decodedPath, '..')) {
+        abort(404);
+    }
+
+    $fullPath = storage_path('app/public/' . ltrim($decodedPath, '/'));
+    if (!is_file($fullPath)) {
+        abort(404);
+    }
+
+    return response()->file($fullPath);
+})->where('path', '.*');
+
 
 Route::view('subscription/payment/view' , 'Subscription_payment_view')->name('subscription_payment_view');
 Route::get('maintenance-mode', [HomeController::class, 'maintenanceMode'])->name('maintenance_mode');

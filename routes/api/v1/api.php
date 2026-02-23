@@ -503,7 +503,7 @@ Route::group(['namespace' => 'Api\V1', 'as' => 'api.v1.', 'middleware' => ['loca
     Route::post('newsletter/subscribe', [NewsletterController::class, 'index'])->name('newsletter.subscribe')->middleware('rateLimiter');
     // Route::get('landing-page', [ConfigController::class, 'landing_page']);
     Route::get('get-page-meta-data', [ConfigController::class, 'getPageMetaData']);
-    Route::get('react-landing-page', [ConfigController::class, 'react_landing_page'])->middleware('actch:react_web');
+    Route::get('react-landing-page', [ConfigController::class, 'react_landing_page']);
     Route::get('react-registration-page', [ConfigController::class, 'react_registration_page']);
 
     Route::get('vehicle/extra_charge', [ConfigController::class, 'extra_charge']);

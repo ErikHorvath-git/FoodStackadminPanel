@@ -296,7 +296,7 @@ class ConfigController extends Controller
             'phone' => $settings['phone'],
             'email' => $settings['email_address'],
             'country' => $settings['country'],
-            'default_location' => ['lat' => $default_location ? $default_location['lat'] : '23.757989', 'lng' => $default_location ? $default_location['lng'] : '90.360587'],
+            'default_location' => ['lat' => $default_location ? $default_location['lat'] : '48.1486', 'lng' => $default_location ? $default_location['lng'] : '17.1077'],
             'currency_symbol' => $currency_symbol,
             'currency_symbol_direction' => $settings['currency_symbol_position'],
             'app_minimum_version_android' => (float)$settings['app_minimum_version_android'],
@@ -460,7 +460,22 @@ class ConfigController extends Controller
         if ($validator->errors()->count() > 0) {
             return response()->json(['errors' => Helpers::error_processor($validator)], 403);
         }
-        $zones = Zone::whereContains('coordinates', new Point($request->lat, $request->lng, POINT_SRID))->latest()->get([
+        $lat = (float) $request->lat;
+        $lng = (float) $request->lng;
+
+        // If browser location is blocked, many clients send 0,0.
+        // Use configured default location to avoid immediate 404.
+        if ($lat == 0.0 && $lng == 0.0) {
+            $defaultLocation = json_decode(BusinessSetting::where('key', 'default_location')->first()?->value ?? '', true);
+            $defaultLat = (float) data_get($defaultLocation, 'lat', 48.1486);
+            $defaultLng = (float) data_get($defaultLocation, 'lng', 17.1077);
+            if ($defaultLat != 0.0 || $defaultLng != 0.0) {
+                $lat = $defaultLat;
+                $lng = $defaultLng;
+            }
+        }
+
+        $zones = Zone::whereContains('coordinates', new Point($lat, $lng, POINT_SRID))->latest()->get([
             'id',
             'status',
             'minimum_shipping_charge',
@@ -471,6 +486,28 @@ class ConfigController extends Controller
             'max_cod_order_amount',
             'maximum_shipping_charge'
         ]);
+        if (count($zones) < 1 && ((float) $request->lat == 0.0 && (float) $request->lng == 0.0)) {
+            $fallbackZone = Zone::where('status', 1)->latest()->first([
+                'id',
+                'status',
+                'minimum_shipping_charge',
+                'increased_delivery_fee',
+                'increased_delivery_fee_status',
+                'increase_delivery_charge_message',
+                'per_km_shipping_charge',
+                'max_cod_order_amount',
+                'maximum_shipping_charge'
+            ]);
+
+            if ($fallbackZone) {
+                $zoneData = $fallbackZone->toArray();
+                return response()->json([
+                    'zone_id' => json_encode([$zoneData['id']]),
+                    'zone_data' => [$zoneData],
+                ], 200);
+            }
+        }
+
         if (count($zones) < 1) {
             return response()->json([
                 'errors' => [
