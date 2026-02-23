@@ -465,7 +465,9 @@ class ConfigController extends Controller
 
         // If browser location is blocked, many clients send 0,0.
         // Use configured default location to avoid immediate 404.
-        if ($lat == 0.0 && $lng == 0.0) {
+        $isNearZeroLocation = abs($lat) < 0.01 && abs($lng) < 0.01;
+
+        if ($isNearZeroLocation) {
             $defaultLocation = json_decode(BusinessSetting::where('key', 'default_location')->first()?->value ?? '', true);
             $defaultLat = (float) data_get($defaultLocation, 'lat', 48.1486);
             $defaultLng = (float) data_get($defaultLocation, 'lng', 17.1077);
@@ -486,7 +488,7 @@ class ConfigController extends Controller
             'max_cod_order_amount',
             'maximum_shipping_charge'
         ]);
-        if (count($zones) < 1 && ((float) $request->lat == 0.0 && (float) $request->lng == 0.0)) {
+        if (count($zones) < 1 && $isNearZeroLocation) {
             $fallbackZone = Zone::where('status', 1)->latest()->first([
                 'id',
                 'status',
