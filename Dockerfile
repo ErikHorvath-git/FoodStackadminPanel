@@ -46,4 +46,4 @@ RUN git config --global --add safe.directory /var/www/html \
 
 EXPOSE 8080
 
-CMD ["bash", "-lc", "mkdir -p storage/logs storage/framework/cache/data storage/framework/sessions storage/framework/views bootstrap/cache && chmod -R 775 storage bootstrap/cache && touch .env && chmod 664 .env config/system-addons.php app/Providers/RouteServiceProvider.php || true && php artisan optimize:clear || true && php artisan storage:link || true && php artisan serve --host=0.0.0.0 --port=${PORT:-8080}"]
+CMD ["bash", "-lc", "mkdir -p storage/logs storage/framework/cache/data storage/framework/sessions storage/framework/views storage/app/public bootstrap/cache public && chmod -R 775 storage bootstrap/cache && touch .env && chmod 664 .env config/system-addons.php app/Providers/RouteServiceProvider.php || true && rm -rf public/storage && ln -s ../storage/app/public public/storage && php artisan optimize:clear || true && php artisan serve --host=0.0.0.0 --port=${PORT:-8080}"]
