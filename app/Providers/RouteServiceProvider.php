@@ -2,6 +2,7 @@
 
 namespace App\Providers;
 
+use App\Http\Controllers\Api\V1\ConfigController;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Foundation\Support\Providers\RouteServiceProvider as ServiceProvider;
 use Illuminate\Http\Request;
@@ -48,6 +49,40 @@ class RouteServiceProvider extends ServiceProvider
         $this->configureRateLimiting();
 
         $this->routes(function () {
+
+            Route::middleware('web')
+                ->namespace($this->namespace)
+                ->group(base_path('routes/web.php'));
+
+            Route::prefix('admin')
+                ->middleware('web')
+                ->namespace($this->namespace)
+                ->group(base_path('routes/admin.php'));
+
+            Route::prefix('restaurant-panel')
+                ->middleware('web')
+                ->namespace($this->namespace)
+                ->group(base_path('routes/vendor.php'));
+
+            Route::prefix('api/v1')
+                ->middleware('api')
+                ->namespace($this->namespace)
+                ->group(base_path('routes/api/v1/api.php'));
+
+            Route::prefix('api/v2')
+                ->middleware('api')
+                ->namespace($this->namespace)
+                ->group(base_path('routes/api/v2/api.php'));
+
+            // Backward-compatible alias for clients calling /v1/config.
+            Route::prefix('v1')
+                ->middleware('api')
+                ->group(function () {
+                    Route::group(['middleware' => ['localization', 'react']], function () {
+                        Route::get('config', [ConfigController::class, 'configuration']);
+                    });
+                });
+
             Route::middleware('web')
                 ->namespace($this->namespace)
                 ->group(base_path('routes/install.php'));
