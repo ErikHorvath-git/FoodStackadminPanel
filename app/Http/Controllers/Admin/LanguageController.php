@@ -16,6 +16,16 @@ use Illuminate\Pagination\LengthAwarePaginator;
 
 class LanguageController extends Controller
 {
+    private function translateTextSafely(string $text, string $targetLang): ?string
+    {
+        try {
+            $translated = Helpers::auto_translator($text, 'en', $targetLang);
+            return is_string($translated) ? $translated : null;
+        } catch (\Throwable $e) {
+            return null;
+        }
+    }
+
     public function index()
     {       $language = BusinessSetting::where('key', 'system_language')->exists();
         if(!$language){
@@ -257,7 +267,7 @@ class LanguageController extends Controller
             $data_filtered[$key] = $data;
         }
         $translated=  str_replace('_', ' ', Helpers::remove_invalid_charcaters($request['key']));
-        $translated = Helpers::auto_translator($translated, 'en', $lang);
+        $translated = $this->translateTextSafely($translated, $lang) ?? $translated;
         $data_filtered[$request['key']] = $translated;
         $str = "<?php return " . var_export($data_filtered, true) . ";";
         file_put_contents(base_path('resources/lang/' . $lang . '/messages.php'), $str);
@@ -299,8 +309,8 @@ class LanguageController extends Controller
                         break;
                     }
                     $translated=  str_replace('_', ' ', Helpers::remove_invalid_charcaters($key_1));
-                    $translated = Helpers::auto_translator($translated, 'en', $lang);
-                    $data_filtered_2[$key_1] = $translated;
+                    $translated = $this->translateTextSafely($translated, $lang);
+                    $data_filtered_2[$key_1] = $translated ?? $full_data[$key_1];
                     unset($translated_data[$key_1]);
                     $count++;
                 }
